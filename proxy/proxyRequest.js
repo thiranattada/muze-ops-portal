@@ -18,7 +18,13 @@ async function proxyRequest(req, res, opts) {
 
   const headers = new Headers();
   for (const [k, v] of Object.entries(req.headers)) {
-    if (['host', 'connection', 'content-length'].includes(k)) continue;
+    // accept-encoding: forwarding the browser's value (e.g. "gzip, br")
+    // disables undici's automatic response decompression, so we'd receive
+    // still-compressed bytes in upstreamResp.body - but we strip
+    // content-encoding on the way back out (see below), which would then
+    // serve compressed bytes to the browser as if they were plain text.
+    // Omitting it lets fetch negotiate + auto-decompress transparently.
+    if (['host', 'connection', 'content-length', 'accept-encoding'].includes(k)) continue;
     if (v !== undefined) headers.set(k, Array.isArray(v) ? v.join(', ') : v);
   }
   Object.entries(injectHeaders).forEach(([k, v]) => headers.set(k, v));
