@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Muze Ops Portal - Sign in</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      padding: 40px;
+      text-align: center;
+      max-width: 360px;
+      width: 100%;
+    }
+    h1 { font-size: 18px; margin-bottom: 8px; color: #1a73e8; }
+    p { font-size: 13px; color: #666; margin-bottom: 24px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 16px;
+      border-radius: 6px;
+      background: #1a73e8;
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .btn:hover { background: #1558b0; }
+    .error {
+      margin-top: 16px;
+      padding: 10px;
+      background: #fce8e6;
+      color: #c5221f;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>📊 Muze Ops Portal</h1>
+    <p>เข้าสู่ระบบด้วยบัญชี Google ขององค์กร (muze.co.th)</p>
+    <a class="btn" href="/auth/google">Sign in with Google</a>
+    <div id="error" class="error" style="display:none"></div>
+  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    if (error) {
+      const el = document.getElementById('error');
+      el.style.display = 'block';
+      el.textContent = error === 'domain_not_allowed'
+        ? 'บัญชีนี้ไม่ได้อยู่ในองค์กร muze.co.th — กรุณาใช้บัญชีอีเมลบริษัท'
+        : 'เกิดข้อผิดพลาดระหว่างเข้าสู่ระบบ กรุณาลองใหม่';
+    }
+  </script>
+</body>
+</html>

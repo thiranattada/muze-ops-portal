@@ -1,0 +1,62 @@
+const { Readable } = require('stream');
+
+// Generic streaming reverse proxy. Streams both directions so binary
+// downloads (.xlsx/.pptx) and their Content-Type/Content-Disposition
+// headers pass through unmodified - never buffer/re-encode the body here.
+async function proxyRequest(req, res, opts) {
+  const { targetBase, stripPrefix = '', injectHeaders = {}, injectQuery = {}, timeoutMs = 55000 } = opts;
+
+  const incomingUrl = new URL(req.originalUrl, 'http://placeholder');
+  let path = incomingUrl.pathname;
+  if (stripPrefix && path.startsWith(stripPrefix)) {
+    path = path.slice(stripPrefix.length) || '/';
+  }
+
+  const targetUrl = new URL(path, targetBase);
+  incomingUrl.searchParams.forEach((v, k) => targetUrl.searchParams.set(k, v));
+  Object.entries(injectQuery).forEach(([k, v]) => targetUrl.searchParams.set(k, v));
+
+  const headers = new Headers();
+  for (const [k, v] of Object.entries(req.headers)) {
+    if (['host', 'connection', 'content-length'].includes(k)) continue;
+    if (v !== undefined) headers.set(k, Array.isArray(v) ? v.join(', ') : v);
+  }
+  Object.entries(injectHeaders).forEach(([k, v]) => headers.set(k, v));
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  const hasBody = !['GET', 'HEAD'].includes(req.method);
+
+  try {
+    const upstreamResp = await fetch(targetUrl, {
+      method: req.method,
+      headers,
+      body: hasBody ? req : undefined,
+      duplex: hasBody ? 'half' : undefined,
+      redirect: 'manual',
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    res.status(upstreamResp.status);
+    upstreamResp.headers.forEach((value, key) => {
+      if (['content-encoding', 'transfer-encoding', 'connection'].includes(key)) return;
+      res.setHeader(key, value);
+    });
+
+    if (!upstreamResp.body) {
+      return res.end();
+    }
+    Readable.fromWeb(upstreamResp.body).pipe(res);
+  } catch (err) {
+    clearTimeout(timeout);
+    if (err.name === 'AbortError') {
+      return res.status(504).send('Upstream request timed out');
+    }
+    console.error('Proxy error:', err.message);
+    return res.status(502).send('Bad gateway');
+  }
+}
+
+module.exports = proxyRequest;

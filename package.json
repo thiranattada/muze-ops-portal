@@ -1,0 +1,17 @@
+{
+  "name": "muze-ops-portal",
+  "version": "1.0.0",
+  "description": "Unified gateway with Google SSO fronting nissan-report-tool and muze-jira-dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "google-auth-library": "^9.15.0",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
