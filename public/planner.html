@@ -15,8 +15,9 @@
   .breadcrumb .sep { opacity: 0.4; }
   .breadcrumb .right { margin-left: auto; display: flex; gap: 16px; }
 
-  .page-wrap { display: flex; justify-content: center; padding: 16px; }
+  .page-wrap { display: flex; justify-content: center; padding: 16px; overflow-x: auto; }
   .page { font-family: 'Mitr', sans-serif; width: 210mm; min-height: 297mm; background: white; padding: 0.5cm; position: relative; overflow: hidden; }
+  @media screen { .page { zoom: 1.5; } }
 
   .header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 6px; margin-bottom: 6px; padding-top: 2px; }
   .header-left { display: flex; align-items: center; gap: 8px; }
@@ -114,8 +115,8 @@
     .breadcrumb { display: none; }
     @page { size: A4 portrait; margin: 0.5cm; }
     body { background: white; }
-    .page-wrap { padding: 0; }
-    .page { width: 100%; min-height: 0; padding: 0; box-shadow: none; }
+    .page-wrap { padding: 0; overflow-x: visible; }
+    .page { width: 100%; min-height: 0; padding: 0; box-shadow: none; zoom: 1; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     #add-task-area { display: none !important; }
     .save-planner-btn, .save-status { display: none !important; }
