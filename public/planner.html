@@ -83,6 +83,7 @@
   .p-low  { background: #f3f4f6; color: #6b7280; border: 0.5px solid #d1d5db; }
   .due-date { font-size: 7.5px; color: #888; white-space: nowrap; font-weight: 400; }
   .due-overdue { color: #dc2626 !important; font-weight: 500; }
+  .time-badge { font-size: 7.5px; color: #1a4a6b; white-space: nowrap; font-weight: 600; background: #d4eaf8; border-radius: 2px; padding: 0 3px; }
   .todo-del { cursor: pointer; color: #ccc; font-size: 10px; flex-shrink: 0; line-height: 1.5; margin-top: 1px; }
   .todo-del:hover { color: #e57373; }
 
@@ -102,6 +103,10 @@
     flex-shrink: 0;
   }
   #new-task-due {
+    flex: 1; min-width: 0; font-size: 9px; padding: 1px 3px;
+    border: 0.5px solid #a8cfc8; border-radius: 2px; background: white; color: #111;
+  }
+  #new-task-time {
     flex: 1; min-width: 0; font-size: 9px; padding: 1px 3px;
     border: 0.5px solid #a8cfc8; border-radius: 2px; background: white; color: #111;
   }
@@ -261,7 +266,11 @@ function renderTable() {
       tdTask.dataset.ph = 'task...';
       tdTask.dataset.time = slot.time;
       tdTask.dataset.field = 'task';
-      tdTask.innerHTML = (cells[slot.time] && cells[slot.time].task) || '';
+      const explicitTask = cells[slot.time] && cells[slot.time].task;
+      const timedTodo = (DATE === todayStr())
+        ? todos.find(t => t.time === slot.time && t.dueDate === DATE)
+        : null;
+      tdTask.innerHTML = explicitTask || (timedTodo ? esc(timedTodo.text) : '');
       tdTask.addEventListener('blur', onCellBlur);
     }
     tr.appendChild(tdTask);
@@ -281,6 +290,7 @@ function renderTable() {
             <option value="low">⚪ L</option>
           </select>
           <input type="date" id="new-task-due">
+          <input type="time" id="new-task-time" step="900">
           <button id="add-task-btn" onclick="addTask()">+</button>
         </div>`;
       tr.appendChild(tdTodo);
@@ -361,20 +371,21 @@ function renderTodos() {
     const duePart = t.dueDate
       ? `<span class="due-date${over ? ' due-overdue' : ''}">${fmtDate(t.dueDate)}</span>`
       : '';
+    const timePart = t.time ? `<span class="time-badge">${t.time}</span>` : '';
     return `<div class="todo-item${t.done ? ' done' : ''}${over ? ' overdue-item' : ''}">
       <span class="todo-cb" onclick="toggleTodo(${i})">${t.done ? '☑' : '☐'}</span>
-      ${duePart}${pBadge(t.priority || 'medium')}
+      ${duePart}${timePart}${pBadge(t.priority || 'medium')}
       <span class="todo-text" contenteditable="true" onblur="editTodo(${i},this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${esc(t.text)}</span>
       <span class="todo-del" onclick="delTodo(${i})">✕</span>
     </div>`;
   }).join('');
 }
 
-function toggleTodo(i) { todos[i].done = !todos[i].done; saveTodos(); renderTodos(); }
-function delTodo(i) { todos.splice(i, 1); saveTodos(); renderTodos(); }
+function toggleTodo(i) { todos[i].done = !todos[i].done; saveTodos(); renderTable(); renderTodos(); }
+function delTodo(i) { todos.splice(i, 1); saveTodos(); renderTable(); renderTodos(); }
 function editTodo(i, el) {
   const newText = el.innerText.trim();
-  if (newText && newText !== todos[i].text) { todos[i].text = newText; saveTodos(); }
+  if (newText && newText !== todos[i].text) { todos[i].text = newText; saveTodos(); renderTable(); renderTodos(); }
   else if (!newText) renderTodos();
 }
 
@@ -383,10 +394,12 @@ function addTask() {
   const text = input.value.trim(); if (!text) return;
   const priority = document.getElementById('new-task-priority').value;
   const dueDate = document.getElementById('new-task-due').value;
-  todos.push({ id: Date.now(), text, done: false, priority, dueDate });
-  saveTodos(); renderTodos();
+  const time = document.getElementById('new-task-time').value;
+  todos.push({ id: Date.now(), text, done: false, priority, dueDate, time });
+  saveTodos(); renderTable(); renderTodos();
   input.value = '';
   document.getElementById('new-task-due').value = '';
+  document.getElementById('new-task-time').value = '';
   input.focus();
 }
 
