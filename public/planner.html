@@ -178,7 +178,11 @@ let cells = {};
 let todos = [];
 let lastMondayCleanup = null;
 
-function todayStr() { return new Date().toISOString().split('T')[0]; }
+// toISOString() gives the UTC calendar date, which is a day behind local
+// Asia/Bangkok time for roughly the first 7 hours of each Bangkok day -
+// compute "today" explicitly in Asia/Bangkok instead (this gateway is
+// muze.co.th-only, so hardcoding the org's timezone is fine).
+function todayStr() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok' }).format(new Date()); }
 
 function fmtDateDisplay(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');

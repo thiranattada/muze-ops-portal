@@ -4,7 +4,9 @@ const { put, list, get: blobGet } = require('@vercel/blob');
 
 const PLANNER_SECRET = process.env.PLANNER_SECRET;
 
-function todayStr() { return new Date().toISOString().split('T')[0]; }
+// Vercel functions run in UTC - compute "today" explicitly in Asia/Bangkok
+// (this gateway is muze.co.th-only) rather than the UTC calendar date.
+function todayStr() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok' }).format(new Date()); }
 
 async function fetchBlob(url) {
   const r = await blobGet(url, { access: 'private' });
