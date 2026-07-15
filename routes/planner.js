@@ -4,7 +4,9 @@ const { OAuth2Client } = require('google-auth-library');
 const drive = require('../storage/googleDrive');
 
 const PLANNER_SECRET = process.env.PLANNER_SECRET;
-const TOTAL_SLOTS = 49; // 06:00-18:00 inclusive, 15-min steps
+const START_HOUR = 9;
+const END_HOUR = 18;
+const TOTAL_SLOTS = (END_HOUR - START_HOUR) * 4 + 1; // 09:00-18:00 inclusive, 15-min steps
 
 // Vercel functions run in UTC - compute "today" explicitly in Asia/Bangkok
 // (this gateway is muze.co.th-only) rather than the UTC calendar date.
@@ -16,7 +18,7 @@ function todosFilename(email) { return `planner_todos__${email}.json`; }
 function projectsFilename(email) { return `planner_projects__${email}.json`; }
 
 function slotIndexToTime(idx) {
-  const totalMinutes = idx * 15 + 6 * 60;
+  const totalMinutes = idx * 15 + START_HOUR * 60;
   const h = Math.floor(totalMinutes / 60);
   const m = totalMinutes % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
@@ -24,7 +26,7 @@ function slotIndexToTime(idx) {
 
 function timeToSlotIndex(hhmm) {
   const [h, m] = hhmm.split(':').map(Number);
-  return Math.floor((h * 60 + m - 6 * 60) / 15);
+  return Math.floor((h * 60 + m - START_HOUR * 60) / 15);
 }
 
 function fmtBangkokTime(isoString) {
@@ -57,7 +59,7 @@ function buildSlotsFromEvents(events) {
 
     const startHHMM = fmtBangkokTime(startIso);
     const endHHMM = fmtBangkokTime(endIso);
-    if (startHHMM < '06:00' || startHHMM >= '18:00') continue; // outside the planner window
+    if (startHHMM < `${String(START_HOUR).padStart(2,'0')}:00` || startHHMM >= `${String(END_HOUR).padStart(2,'0')}:00`) continue; // outside the planner window
 
     let startIdx = Math.max(0, Math.min(timeToSlotIndex(startHHMM), TOTAL_SLOTS - 1));
     // endHHMM is the slot where the event *begins* to be free, so subtract 1
@@ -102,8 +104,8 @@ async function fetchTodaysCalendarEvents(refreshToken) {
   const { token } = await client.getAccessToken();
 
   const date = todayStr();
-  const timeMin = new Date(`${date}T06:00:00+07:00`).toISOString();
-  const timeMax = new Date(`${date}T18:00:00+07:00`).toISOString();
+  const timeMin = new Date(`${date}T${String(START_HOUR).padStart(2,'0')}:00:00+07:00`).toISOString();
+  const timeMax = new Date(`${date}T${String(END_HOUR).padStart(2,'0')}:00:00+07:00`).toISOString();
   const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
     `timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}` +
     `&singleEvents=true&orderBy=startTime`;

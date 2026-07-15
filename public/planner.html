@@ -48,6 +48,11 @@
   tbody tr td { padding: 1px 5px; vertical-align: middle; color: #111; line-height: 1.2; }
   tbody tr td:first-child { text-align: center; font-weight: 700; font-size: 10.5px; color: #2d5a50; border-right: 2px solid #4a7c6f; white-space: nowrap; letter-spacing: -0.3px; background: #e8e8e8; }
   tbody tr td:nth-child(2) { border-right: 1px dashed #a8cfc8; }
+  tbody tr td.todo-cell:first-child {
+    text-align: left; font-weight: 400; font-size: inherit; color: inherit;
+    border-right: none; white-space: normal; letter-spacing: normal;
+    background: #fafafa !important;
+  }
   .task-cell { height: 20px; }
   td[contenteditable="true"]:empty::before { content: attr(data-ph); color: #ccc; font-size: 8px; }
   td[contenteditable="true"]:focus { outline: none; background: #fffef0 !important; }
@@ -62,9 +67,8 @@
 
   /* TODO LIST */
   .todo-cell {
-    vertical-align: top; padding: 5px 6px !important;
-    background: #fafafa !important; border-left: 1px solid #ddd;
-    overflow-y: auto; max-height: 240px;
+    vertical-align: top; padding: 6px 8px !important;
+    background: #fafafa !important;
   }
   .todo-header {
     font-size: 9px; font-weight: 600; color: #555;
@@ -72,7 +76,10 @@
     border-bottom: 0.5px solid #ccc; padding-bottom: 2px; margin-bottom: 3px;
     display: flex; justify-content: space-between; align-items: center;
   }
-  #todo-list { column-count: 1; }
+  .todo-columns { display: flex; gap: 10px; }
+  .todo-col-active { flex: 1; min-width: 0; }
+  .todo-col-done   { flex: 1; min-width: 0; border-left: 0.5px solid #e0e0e0; padding-left: 8px; }
+  .todo-col-header { font-size: 7.5px; font-weight: 600; color: #888; letter-spacing: 0.8px; text-transform: uppercase; border-bottom: 0.5px solid #e0e0e0; padding-bottom: 1px; margin-bottom: 2px; }
   .todo-item { display: flex; align-items: flex-start; gap: 3px; font-size: 9.5px; font-weight: 400; line-height: 1.4; margin: 2px 0; break-inside: avoid; }
   .todo-item.overdue-item { border-left: 2px solid #dc2626; padding-left: 2px; background: #fff5f5; border-radius: 2px; }
   .todo-cb { cursor: pointer; font-size: 11px; flex-shrink: 0; color: #555; user-select: none; line-height: 1.3; margin-top: 0; }
@@ -290,7 +297,7 @@ function esc(t) { return (t || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 
 function buildDefaultSlots() {
   const slots = [];
-  let h = 6, m = 0;
+  let h = 9, m = 0;
   while (h < 18 || (h === 18 && m === 0)) {
     const time = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
     const lunch = h === 12;
@@ -343,7 +350,37 @@ function renderTable() {
   const tbody = document.getElementById('planner-tbody');
   tbody.innerHTML = '';
 
-  slots.forEach((slot, idx) => {
+  // Full-width To-Do List row, replacing the old 06:00-08:45 schedule rows
+  const todoTr = document.createElement('tr');
+  const tdTodo = document.createElement('td');
+  tdTodo.className = 'todo-cell';
+  tdTodo.colSpan = 3;
+  tdTodo.innerHTML = `
+    <div class="todo-header"><span>📋 To-Do List</span></div>
+    <div class="todo-columns">
+      <div class="todo-col-active"><div class="todo-col-header">Active</div><div id="todo-list-active"></div></div>
+      <div class="todo-col-done"><div class="todo-col-header">Done</div><div id="todo-list-done"></div></div>
+    </div>
+    <div id="add-task-area">
+      <input type="text" id="new-task-input" placeholder="task..." onkeydown="if(event.key==='Enter')addTask()">
+      <select id="new-task-priority">
+        <option value="high">🔴 H</option>
+        <option value="medium" selected>🟡 M</option>
+        <option value="low">⚪ L</option>
+      </select>
+      <input type="date" id="new-task-due" value="${DATE}">
+      <input type="time" id="new-task-time" step="900" value="09:00">
+      <select id="new-task-project" onchange="onProjectSelectChange(this)">
+        <option value="">🔗 —</option>
+        ${projects.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}
+        <option value="__new__">+ New Project</option>
+      </select>
+      <button id="add-task-btn" onclick="addTask()">+</button>
+    </div>`;
+  todoTr.appendChild(tdTodo);
+  tbody.appendChild(todoTr);
+
+  slots.forEach((slot) => {
     const tr = document.createElement('tr');
     tr.className = [slot.hourMark ? 'hour-mark' : '', slot.hasEvent ? 'has-event' : '', slot.lunch ? 'lunch' : ''].filter(Boolean).join(' ');
 
@@ -375,45 +412,19 @@ function renderTable() {
     }
     tr.appendChild(tdTask);
 
-    if (idx === 0) {
-      const tdTodo = document.createElement('td');
-      tdTodo.className = 'todo-cell';
-      tdTodo.rowSpan = 12;
-      tdTodo.innerHTML = `
-        <div class="todo-header"><span>📋 To-Do List</span></div>
-        <div id="todo-list"></div>
-        <div id="add-task-area">
-          <input type="text" id="new-task-input" placeholder="task..." onkeydown="if(event.key==='Enter')addTask()">
-          <select id="new-task-priority">
-            <option value="high">🔴 H</option>
-            <option value="medium" selected>🟡 M</option>
-            <option value="low">⚪ L</option>
-          </select>
-          <input type="date" id="new-task-due" value="${DATE}">
-          <input type="time" id="new-task-time" step="900" value="09:00">
-          <select id="new-task-project" onchange="onProjectSelectChange(this)">
-            <option value="">🔗 —</option>
-            ${projects.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}
-            <option value="__new__">+ New Project</option>
-          </select>
-          <button id="add-task-btn" onclick="addTask()">+</button>
-        </div>`;
-      tr.appendChild(tdTodo);
-    } else if (idx >= 12) {
-      const tdNote = document.createElement('td');
-      if (slot.noteFixed) {
-        tdNote.className = 'cal-note';
-        tdNote.textContent = slot.note || '';
-      } else {
-        tdNote.contentEditable = 'true';
-        tdNote.dataset.ph = 'note...';
-        tdNote.dataset.time = slot.time;
-        tdNote.dataset.field = 'note';
-        tdNote.innerHTML = (cells[slot.time] && cells[slot.time].note) || '';
-        tdNote.addEventListener('blur', onCellBlur);
-      }
-      tr.appendChild(tdNote);
+    const tdNote = document.createElement('td');
+    if (slot.noteFixed) {
+      tdNote.className = 'cal-note';
+      tdNote.textContent = slot.note || '';
+    } else {
+      tdNote.contentEditable = 'true';
+      tdNote.dataset.ph = 'note...';
+      tdNote.dataset.time = slot.time;
+      tdNote.dataset.field = 'note';
+      tdNote.innerHTML = (cells[slot.time] && cells[slot.time].note) || '';
+      tdNote.addEventListener('blur', onCellBlur);
     }
+    tr.appendChild(tdNote);
 
     tbody.appendChild(tr);
   });
@@ -487,11 +498,17 @@ function todoItemHtml(t, i) {
 }
 
 function renderTodos() {
-  const list = document.getElementById('todo-list');
-  if (!list) return;
-  list.innerHTML = todos.length
-    ? todos.map((t, i) => todoItemHtml(t, i)).join('')
-    : '<div style="font-size:8px;color:#bbb;padding:2px 0;">ยังไม่มี task — เพิ่มด้านล่าง</div>';
+  const activeEl = document.getElementById('todo-list-active');
+  const doneEl   = document.getElementById('todo-list-done');
+  if (!activeEl || !doneEl) return;
+  const active = todos.map((t, i) => ({ t, i })).filter(({ t }) => !t.done);
+  const done   = todos.map((t, i) => ({ t, i })).filter(({ t }) =>  t.done);
+  activeEl.innerHTML = active.length
+    ? active.map(({ t, i }) => todoItemHtml(t, i)).join('')
+    : '<div style="font-size:8px;color:#bbb;padding:2px 0;">ยังไม่มี task</div>';
+  doneEl.innerHTML = done.length
+    ? done.map(({ t, i }) => todoItemHtml(t, i)).join('')
+    : '<div style="font-size:8px;color:#bbb;padding:2px 0;">—</div>';
 }
 
 function toggleTodo(i) { todos[i].done = !todos[i].done; saveTodos(); renderTable(); renderTodos(); }
