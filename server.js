@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const requireAuth = require('./auth/requireAuth');
-const reportProxy = require('./proxy/reportProxy');
 const dashboardProxy = require('./proxy/dashboardProxy');
 const loginRoutes = require('./routes/login');
 const landingRoutes = require('./routes/landing');
@@ -30,7 +29,6 @@ app.use(requireAuth);
 app.use(landingRoutes);
 app.use(digestRoutes);
 app.use(plannerRoutes);
-app.use(reportProxy);
 app.use(dashboardProxy);
 
 module.exports = app;
