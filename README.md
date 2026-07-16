@@ -1,12 +1,10 @@
 # muze-ops-portal
 
-Unified gateway that fronts internal tools behind one URL and one Google
-Workspace login:
-- `/dashboard`, `/api/*` → `muze-jira-dashboard` (Vercel)
-
-The gateway does not replace either backend's own auth — it injects the
-right credential per backend automatically after the user signs in once
-with their `muze.co.th` Google account.
+Unified internal tools portal, gated behind one Google Workspace login
+(`muze.co.th` accounts only). Some tools (Email Digest, Daily Planner) are
+built directly into this app; others with their own independent
+Google-gated auth are just linked from the landing page (see
+`public/landing.html`) rather than proxied.
 
 ## Setup
 
@@ -35,29 +33,21 @@ sign in with Google.
      (locally in `.env`, and in Vercel's project env vars for production)
    - Everyone needs to log out and back in once after this scope was added,
      to grant it - existing sessions/refresh tokens predate it
-2. Everything else (`DASHBOARD_SECRET`, `SESSION_SECRET`) is already set as
-   Vercel production env vars, reusing the existing secret from the
-   dashboard backend project.
+2. `SESSION_SECRET` and `PLANNER_SECRET` are already set as Vercel
+   production env vars.
 
-## Known limitations (by design, for this MVP)
+## Known limitations (by design)
 
-- `/api/*` at the gateway root is owned by `muze-jira-dashboard` only,
-  because its frontend calls root-relative paths like `/api/dashboard`
-  rather than paths nested under `/dashboard/`. A future third module
-  needing its own `/api` namespace would collide with this — not solved
-  generically; fix later by prefixing the dashboard's frontend calls or
-  giving the new module a distinct namespace.
 - No session store — sessions are a stateless signed JWT cookie, 12h expiry.
   Rotating `SESSION_SECRET` logs everyone out; acceptable for a small
   internal tool.
 - No `/logout` link is exposed anywhere except the landing page header.
 
-## Adding a third module later
+## Adding a module later
 
-Add a new `proxy/<name>Proxy.js` following `dashboardProxy.js` as a
-template, mount it in `server.js` after `requireAuth`, and add its
-credentials to `.env.example` / Vercel env vars. Avoid claiming `/api/*` at
-the root if the dashboard module still owns it (see Known Limitations).
 For a module with its own independent Google-gated auth (like KTC Monthly
-Report), skip the proxy entirely and just add a plain link card to
-`public/landing.html` instead (see the TVN Case Monitoring / KTC cards).
+Report or TVN Case Monitoring), just add a plain link card to
+`public/landing.html` — no proxying needed. For a module without its own
+auth that needs the portal's SSO to gate it, build it as a native route
+here (see `routes/digest.js`/`routes/planner.js` as examples) rather than
+reintroducing a reverse-proxy layer.
