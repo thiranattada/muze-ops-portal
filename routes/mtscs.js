@@ -39,7 +39,6 @@ async function loadData() {
     byStatus: groupBy(tickets, 'status'),
     byPriority: groupBy(tickets, 'priority'),
     byIssueType: groupBy(tickets, 'customfield_11703'),
-    byAssignee: groupBy(tickets, 'assignee').slice(0, 10),
     latest,
     jiraBaseUrl: JIRA_BASE_URL,
     lastUpdated: new Date().toISOString(),

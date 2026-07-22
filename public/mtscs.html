@@ -108,20 +108,16 @@ async function load() {
   document.getElementById('last-updated').textContent =
     'อัปเดตล่าสุด: ' + new Date(data.lastUpdated).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
 
-  const assigneeCount = data.byAssignee.filter(([name]) => name && name !== 'Unknown').length;
-
   document.getElementById('body').innerHTML = `
     <div class="stats">
       <div class="stat-tile"><div class="label">ทั้งหมด</div><div class="value">${data.total}</div></div>
       <div class="stat-tile"><div class="label">ยังไม่ปิด (Open)</div><div class="value">${data.open}</div></div>
-      <div class="stat-tile"><div class="label">ผู้รับผิดชอบ</div><div class="value">${assigneeCount}</div></div>
       <div class="stat-tile"><div class="label">First Tier</div><div class="value">${data.firstTierPercent}%</div></div>
     </div>
     <div class="panels">
       <div class="panel"><h2>สถานะ (Status)</h2>${renderBarList(data.byStatus)}</div>
       <div class="panel"><h2>ความสำคัญ (Priority)</h2>${renderBarList(data.byPriority)}</div>
       <div class="panel"><h2>ประเภท (Issue Type)</h2>${renderBarList(data.byIssueType)}</div>
-      <div class="panel"><h2>ภาระงานตามผู้รับผิดชอบ</h2>${renderBarList(data.byAssignee)}</div>
     </div>
     <div class="ticket-table">
       <table>
