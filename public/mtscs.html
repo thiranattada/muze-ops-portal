@@ -95,13 +95,11 @@ function renderCountTable(entries, total, labelHeader) {
 
 function renderTicketRow(t, jiraBaseUrl) {
   const keyCell = jiraBaseUrl ? `<a href="${jiraBaseUrl}/browse/${encodeURIComponent(t.key)}" target="_blank" rel="noopener">${escapeHtml(t.key)}</a>` : escapeHtml(t.key);
-  const created = t.created ? new Date(t.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
   return `<tr>
     <td style="white-space:nowrap">${keyCell}</td>
     <td style="white-space:nowrap">${escapeHtml(t.customfield_11703 || '-')}</td>
     <td style="max-width:280px">${escapeHtml(t.summary || '')}</td>
     <td><span class="status-chip">${escapeHtml(t.status || '-')}</span></td>
-    <td style="white-space:nowrap">${created}</td>
     <td>${escapeHtml(t.assignee || '-')}</td>
   </tr>`;
 }
@@ -137,7 +135,7 @@ async function load() {
     </div>
     <div class="ticket-table">
       <table>
-        <thead><tr><th>Key</th><th>Issue Type</th><th>Summary</th><th>Status</th><th>Created</th><th>Assignee</th></tr></thead>
+        <thead><tr><th>Key</th><th>Issue Type</th><th>Summary</th><th>Status</th><th>Assignee</th></tr></thead>
         <tbody>${data.latest.map(t => renderTicketRow(t, data.jiraBaseUrl)).join('')}</tbody>
       </table>
     </div>
