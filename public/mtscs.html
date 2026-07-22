@@ -99,13 +99,13 @@ function renderStatusTable(entries, total) {
 
 function renderTicketRow(t, jiraBaseUrl) {
   const keyCell = jiraBaseUrl ? `<a href="${jiraBaseUrl}/browse/${encodeURIComponent(t.key)}" target="_blank" rel="noopener">${escapeHtml(t.key)}</a>` : escapeHtml(t.key);
-  const created = t.created ? new Date(t.created).toLocaleDateString('th-TH', { dateStyle: 'medium' }) : '-';
+  const created = t.created ? new Date(t.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
   return `<tr>
     <td style="white-space:nowrap">${keyCell}</td>
-    <td>${escapeHtml(t.customfield_11703 || '-')}</td>
-    <td>${escapeHtml(t.summary || '')}</td>
+    <td style="white-space:nowrap">${escapeHtml(t.customfield_11703 || '-')}</td>
+    <td style="max-width:280px">${escapeHtml(t.summary || '')}</td>
     <td><span class="status-chip">${escapeHtml(t.status || '-')}</span></td>
-    <td>${created}</td>
+    <td style="white-space:nowrap">${created}</td>
     <td>${escapeHtml(t.assignee || '-')}</td>
   </tr>`;
 }
