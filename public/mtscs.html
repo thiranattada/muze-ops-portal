@@ -90,6 +90,7 @@ function renderTicketRow(t, jiraBaseUrl) {
     <td>${keyCell}</td>
     <td>${escapeHtml(t.summary || '')}</td>
     <td><span class="status-chip">${escapeHtml(t.status || '-')}</span></td>
+    <td>${escapeHtml(t.issuetype || '-')}</td>
     <td>${escapeHtml(t.assignee || '-')}</td>
     <td>${created}</td>
   </tr>`;
@@ -124,7 +125,7 @@ async function load() {
     </div>
     <div class="ticket-table">
       <table>
-        <thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Assignee</th><th>Created</th></tr></thead>
+        <thead><tr><th>Key</th><th>Summary</th><th>Status</th><th>Issue Type</th><th>Assignee</th><th>Created</th></tr></thead>
         <tbody>${data.latest.map(t => renderTicketRow(t, data.jiraBaseUrl)).join('')}</tbody>
       </table>
     </div>
