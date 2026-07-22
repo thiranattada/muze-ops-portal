@@ -25,7 +25,8 @@ async function loadData() {
   const openCount = tickets.filter(t => !doneStatuses.has((t.status || '').toLowerCase())).length;
 
   // customfield_11588 = Jira's "First Tier" dropdown (Yes/No)
-  const firstTierCount = tickets.filter(t => (t.customfield_11588 || '').toLowerCase() === 'yes').length;
+  const firstTierTickets = tickets.filter(t => (t.customfield_11588 || '').toLowerCase() === 'yes');
+  const firstTierCount = firstTierTickets.length;
   const firstTierPercent = tickets.length > 0 ? Math.round((firstTierCount / tickets.length) * 100) : 0;
 
   const latest = [...tickets]
@@ -35,7 +36,9 @@ async function loadData() {
   return {
     total: tickets.length,
     open: openCount,
+    firstTierCount,
     firstTierPercent,
+    firstTierByIssueType: groupBy(firstTierTickets, 'customfield_11703'),
     byStatus: groupBy(tickets, 'status'),
     byIssueType: groupBy(tickets, 'customfield_11703'),
     latest,
