@@ -90,7 +90,7 @@ function renderTicketRow(t, jiraBaseUrl) {
     <td>${keyCell}</td>
     <td>${escapeHtml(t.summary || '')}</td>
     <td><span class="status-chip">${escapeHtml(t.status || '-')}</span></td>
-    <td>${escapeHtml(t.issuetype || '-')}</td>
+    <td>${escapeHtml(t.customfield_11703 || '-')}</td>
     <td>${escapeHtml(t.assignee || '-')}</td>
     <td>${created}</td>
   </tr>`;
