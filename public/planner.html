@@ -16,7 +16,7 @@
   .breadcrumb .right { margin-left: auto; display: flex; gap: 16px; }
 
   .page-wrap { display: flex; justify-content: center; padding: 16px; overflow-x: auto; }
-  .page { font-family: 'Mitr', sans-serif; width: 210mm; min-height: 297mm; background: white; padding: 0.5cm; position: relative; overflow: hidden; }
+  .page { font-family: 'Mitr', sans-serif; width: 297mm; min-height: 210mm; background: white; padding: 0.5cm; position: relative; overflow: hidden; }
   @media screen { .page { zoom: 1.25; } }
 
   .header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 8.4px; margin-bottom: 8.4px; padding-top: 2.8px; }
@@ -37,24 +37,22 @@
   .save-planner-btn:hover { background: #222; }
   .save-status { font-size: 7px; color: #4a7c6f; margin-top: 3px; text-align: right; height: 9px; }
 
+  .schedule-columns { display: flex; gap: 10px; }
+  .schedule-table { flex: 1; min-width: 0; }
+
   table { width: 100%; border-collapse: collapse; font-size: 10px; }
-  thead tr th { background: #4a7c6f; color: white; padding: 3px 5px; text-align: left; font-size: 8px; letter-spacing: 1.2px; text-transform: uppercase; font-weight: 600; }
-  thead tr th:first-child { width: 44px; text-align: center; }
-  thead tr th:nth-child(2) { width: 265px; }
+  thead tr th { background: #4a7c6f; color: white; padding: 2px 5px; text-align: left; font-size: 8px; letter-spacing: 1.2px; text-transform: uppercase; font-weight: 600; }
+  thead tr th:first-child { width: 15%; text-align: center; }
+  thead tr th:nth-child(2) { width: 42%; }
 
   tbody tr { border-bottom: 0.5px solid #d5e8e4; }
   tbody tr:nth-child(even) { background: #f2f2f2; }
   tbody tr.hour-mark { border-top: 1.5px solid #4a7c6f; }
-  tbody tr td { padding: 1px 5px; vertical-align: middle; color: #111; line-height: 1.2; }
-  tbody tr td:first-child { text-align: center; font-weight: 700; font-size: 10.5px; color: #2d5a50; border-right: 2px solid #4a7c6f; white-space: nowrap; letter-spacing: -0.3px; background: #e8e8e8; }
+  tbody tr td { padding: 0px 5px; vertical-align: middle; color: #111; line-height: 1.1; }
+  tbody tr td:first-child { text-align: center; font-weight: 700; font-size: 9.5px; color: #2d5a50; border-right: 2px solid #4a7c6f; white-space: nowrap; letter-spacing: -0.3px; background: #e8e8e8; }
   tbody tr td:nth-child(2) { border-right: 1px dashed #a8cfc8; }
-  tbody tr td.todo-cell:first-child {
-    text-align: left; font-weight: 400; font-size: inherit; color: inherit;
-    border-right: none; white-space: normal; letter-spacing: normal;
-    background: #fafafa !important;
-  }
-  .task-cell { height: 20px; }
-  td[contenteditable="true"]:empty::before { content: attr(data-ph); color: #ccc; font-size: 8px; }
+  .task-cell { height: 14px; }
+  td[contenteditable="true"]:empty::before { content: attr(data-ph); color: #ccc; font-size: 7.5px; }
   td[contenteditable="true"]:focus { outline: none; background: #fffef0 !important; }
   td[contenteditable="true"] { cursor: text; }
 
@@ -66,9 +64,9 @@
   .lunch-label { font-size: 10px; font-weight: 700; color: #8a6200; letter-spacing: 0.3px; }
 
   /* TODO LIST */
-  .todo-cell {
-    vertical-align: top; padding: 6px 8px !important;
-    background: #fafafa !important;
+  .todo-panel {
+    background: #fafafa; border: 1px solid #eee; border-radius: 4px;
+    padding: 6px 8px; margin-bottom: 6px;
   }
   .todo-header {
     font-size: 9px; font-weight: 600; color: #555;
@@ -101,6 +99,13 @@
     max-width: 90px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: middle;
   }
   .project-badge:hover { background: #e3d1f5; }
+  .todo-item-wrap { margin: 2px 0; }
+  .todo-item-wrap .todo-item { margin: 0; }
+  .project-subitems { margin: 1px 0 2px 15px; border-left: 1.5px solid #e3d1f5; padding-left: 5px; }
+  .subitem-inline { display: flex; align-items: flex-start; gap: 3px; font-size: 8px; color: #6b3fa0; line-height: 1.35; }
+  .subitem-inline-cb { cursor: pointer; font-size: 9px; flex-shrink: 0; user-select: none; }
+  .subitem-inline-text { flex: 1; word-break: break-word; }
+  .subitem-inline.done .subitem-inline-text { text-decoration: line-through; color: #c3b0d8; }
 
   #add-task-area {
     display: flex; gap: 3px; align-items: center;
@@ -183,7 +188,7 @@
   @media print {
     .daisy { display: none; }
     .breadcrumb { display: none; }
-    @page { size: A4 portrait; margin: 0.5cm; }
+    @page { size: A4 landscape; margin: 0.5cm; }
     body { background: white; }
     .page-wrap { padding: 0; overflow-x: visible; }
     .page { width: 100%; min-height: 0; padding: 0; box-shadow: none; zoom: 1; }
@@ -212,17 +217,15 @@
 <div class="page">
 
   <div class="daisy" style="top:8px; left:6px;"></div>
-  <div class="daisy" style="top:10px; left:772px; width:20px; height:20px; opacity:0.3;"></div>
-  <div class="daisy" style="top:150px; left:400px; width:18px; height:18px; opacity:0.25;"></div>
-  <div class="daisy" style="top:230px; left:55px; opacity:0.3;"></div>
-  <div class="daisy" style="top:310px; left:705px; width:20px; height:20px; opacity:0.28;"></div>
-  <div class="daisy" style="top:430px; left:250px;"></div>
-  <div class="daisy" style="top:520px; left:555px; width:18px; height:18px; opacity:0.25;"></div>
-  <div class="daisy" style="top:640px; left:80px; width:20px; height:20px; opacity:0.3;"></div>
-  <div class="daisy" style="top:730px; left:650px; opacity:0.28;"></div>
-  <div class="daisy" style="top:850px; left:350px; width:18px; height:18px; opacity:0.25;"></div>
-  <div class="daisy" style="top:950px; left:120px;"></div>
-  <div class="daisy" style="top:1020px; left:600px; width:20px; height:20px; opacity:0.28;"></div>
+  <div class="daisy" style="top:10px; left:1080px; width:20px; height:20px; opacity:0.3;"></div>
+  <div class="daisy" style="top:190px; left:540px; width:18px; height:18px; opacity:0.25;"></div>
+  <div class="daisy" style="top:280px; left:60px; opacity:0.3;"></div>
+  <div class="daisy" style="top:280px; left:1060px; width:20px; height:20px; opacity:0.28;"></div>
+  <div class="daisy" style="top:420px; left:300px;"></div>
+  <div class="daisy" style="top:420px; left:830px; width:18px; height:18px; opacity:0.25;"></div>
+  <div class="daisy" style="top:560px; left:110px; width:20px; height:20px; opacity:0.3;"></div>
+  <div class="daisy" style="top:560px; left:960px; opacity:0.28;"></div>
+  <div class="daisy" style="top:680px; left:540px; width:18px; height:18px; opacity:0.25;"></div>
 
   <div class="header">
     <div class="header-left">
@@ -245,12 +248,22 @@
     </div>
   </div>
 
-  <table>
-    <thead>
-      <tr><th>Time</th><th>Task / Activity</th><th>Brief Detail / Note</th></tr>
-    </thead>
-    <tbody id="planner-tbody"></tbody>
-  </table>
+  <div class="todo-panel" id="todo-panel"></div>
+
+  <div class="schedule-columns">
+    <table class="schedule-table">
+      <thead>
+        <tr><th>Time</th><th>Task / Activity</th><th>Brief Detail / Note</th></tr>
+      </thead>
+      <tbody id="planner-tbody-left"></tbody>
+    </table>
+    <table class="schedule-table">
+      <thead>
+        <tr><th>Time</th><th>Task / Activity</th><th>Brief Detail / Note</th></tr>
+      </thead>
+      <tbody id="planner-tbody-right"></tbody>
+    </table>
+  </div>
 
 </div>
 </div>
@@ -345,17 +358,9 @@ function applyMondayCleanup() {
   }
 }
 
-function renderTable() {
-  const slots = (scheduleSlots && scheduleSlots.length) ? scheduleSlots : buildDefaultSlots();
-  const tbody = document.getElementById('planner-tbody');
-  tbody.innerHTML = '';
-
-  // Full-width To-Do List row, replacing the old 06:00-08:45 schedule rows
-  const todoTr = document.createElement('tr');
-  const tdTodo = document.createElement('td');
-  tdTodo.className = 'todo-cell';
-  tdTodo.colSpan = 3;
-  tdTodo.innerHTML = `
+function renderTodoPanel() {
+  const panel = document.getElementById('todo-panel');
+  panel.innerHTML = `
     <div class="todo-header"><span>📋 To-Do List</span></div>
     <div class="todo-columns">
       <div class="todo-col-active"><div class="todo-col-header">Active</div><div id="todo-list-active"></div></div>
@@ -377,57 +382,71 @@ function renderTable() {
       </select>
       <button id="add-task-btn" onclick="addTask()">+</button>
     </div>`;
-  todoTr.appendChild(tdTodo);
-  tbody.appendChild(todoTr);
+}
 
-  slots.forEach((slot) => {
-    const tr = document.createElement('tr');
-    tr.className = [slot.hourMark ? 'hour-mark' : '', slot.hasEvent ? 'has-event' : '', slot.lunch ? 'lunch' : ''].filter(Boolean).join(' ');
+function buildSlotRow(slot) {
+  const tr = document.createElement('tr');
+  tr.className = [slot.hourMark ? 'hour-mark' : '', slot.hasEvent ? 'has-event' : '', slot.lunch ? 'lunch' : ''].filter(Boolean).join(' ');
 
-    const tdTime = document.createElement('td');
-    tdTime.textContent = slot.time;
-    tr.appendChild(tdTime);
+  const tdTime = document.createElement('td');
+  tdTime.textContent = slot.time;
+  tr.appendChild(tdTime);
 
-    const tdTask = document.createElement('td');
-    tdTask.className = 'task-cell';
-    if (slot.lunch && slot.hourMark) {
-      tdTask.innerHTML = `<span class="lunch-label">🍱 ${esc(slot.eventLabel || 'Lunch Break')}</span>`;
-    } else if (slot.lunch) {
-      tdTask.innerHTML = `<span class="lunch-label">🍱 Lunch Break</span>`;
-    } else if (slot.hasEvent) {
-      tdTask.innerHTML = slot.eventType === 'start'
-        ? `<span class="cal-event">${esc(slot.eventLabel)}</span>`
-        : `<span class="cal-cont">↳ ${esc(slot.eventLabel)}</span>`;
-    } else {
-      tdTask.contentEditable = 'true';
-      tdTask.dataset.ph = 'task...';
-      tdTask.dataset.time = slot.time;
-      tdTask.dataset.field = 'task';
-      const explicitTask = cells[slot.time] && cells[slot.time].task;
-      const timedTodo = (DATE === todayStr())
-        ? todos.find(t => t.time === slot.time && t.dueDate === DATE)
-        : null;
-      tdTask.innerHTML = explicitTask || (timedTodo ? esc(timedTodo.text) : '');
-      tdTask.addEventListener('blur', onCellBlur);
-    }
-    tr.appendChild(tdTask);
+  const tdTask = document.createElement('td');
+  tdTask.className = 'task-cell';
+  if (slot.lunch && slot.hourMark) {
+    tdTask.innerHTML = `<span class="lunch-label">🍱 ${esc(slot.eventLabel || 'Lunch Break')}</span>`;
+  } else if (slot.lunch) {
+    tdTask.innerHTML = `<span class="lunch-label">🍱 Lunch Break</span>`;
+  } else if (slot.hasEvent) {
+    tdTask.innerHTML = slot.eventType === 'start'
+      ? `<span class="cal-event">${esc(slot.eventLabel)}</span>`
+      : `<span class="cal-cont">↳ ${esc(slot.eventLabel)}</span>`;
+  } else {
+    tdTask.contentEditable = 'true';
+    tdTask.dataset.ph = 'task...';
+    tdTask.dataset.time = slot.time;
+    tdTask.dataset.field = 'task';
+    const explicitTask = cells[slot.time] && cells[slot.time].task;
+    const timedTodo = (DATE === todayStr())
+      ? todos.find(t => t.time === slot.time && t.dueDate === DATE)
+      : null;
+    tdTask.innerHTML = explicitTask || (timedTodo ? esc(timedTodo.text) : '');
+    tdTask.addEventListener('blur', onCellBlur);
+  }
+  tr.appendChild(tdTask);
 
-    const tdNote = document.createElement('td');
-    if (slot.noteFixed) {
-      tdNote.className = 'cal-note';
-      tdNote.textContent = slot.note || '';
-    } else {
-      tdNote.contentEditable = 'true';
-      tdNote.dataset.ph = 'note...';
-      tdNote.dataset.time = slot.time;
-      tdNote.dataset.field = 'note';
-      tdNote.innerHTML = (cells[slot.time] && cells[slot.time].note) || '';
-      tdNote.addEventListener('blur', onCellBlur);
-    }
-    tr.appendChild(tdNote);
+  const tdNote = document.createElement('td');
+  if (slot.noteFixed) {
+    tdNote.className = 'cal-note';
+    tdNote.textContent = slot.note || '';
+  } else {
+    tdNote.contentEditable = 'true';
+    tdNote.dataset.ph = 'note...';
+    tdNote.dataset.time = slot.time;
+    tdNote.dataset.field = 'note';
+    tdNote.innerHTML = (cells[slot.time] && cells[slot.time].note) || '';
+    tdNote.addEventListener('blur', onCellBlur);
+  }
+  tr.appendChild(tdNote);
 
-    tbody.appendChild(tr);
-  });
+  return tr;
+}
+
+function renderTable() {
+  renderTodoPanel();
+
+  const slots = (scheduleSlots && scheduleSlots.length) ? scheduleSlots : buildDefaultSlots();
+  const splitAt = Math.ceil(slots.length / 2);
+  const left = slots.slice(0, splitAt);
+  const right = slots.slice(splitAt);
+
+  const leftBody = document.getElementById('planner-tbody-left');
+  const rightBody = document.getElementById('planner-tbody-right');
+  leftBody.innerHTML = '';
+  rightBody.innerHTML = '';
+  left.forEach(slot => leftBody.appendChild(buildSlotRow(slot)));
+  right.forEach(slot => rightBody.appendChild(buildSlotRow(slot)));
 }
 
 let saveCellsTimeout;
@@ -484,16 +503,31 @@ function projectBadgeHtml(t) {
   return `<span class="project-badge" onclick="openProject('${p.id}')" title="${esc(p.name)}">🔗 ${esc(p.name)} (${done}/${total})</span>`;
 }
 
+function projectSubitemsInlineHtml(t) {
+  if (!t.projectId) return '';
+  const p = projects.find(p => p.id === t.projectId);
+  if (!p || !p.subItems.length) return '';
+  const items = p.subItems.map((s, si) => `
+    <div class="subitem-inline${s.done ? ' done' : ''}">
+      <span class="subitem-inline-cb" onclick="toggleSubItemFor('${p.id}',${si})">${s.done ? '☑' : '☐'}</span>
+      <span class="subitem-inline-text">${esc(s.text)}</span>
+    </div>`).join('');
+  return `<div class="project-subitems">${items}</div>`;
+}
+
 function todoItemHtml(t, i) {
   const over = isOverdue(t);
   const duePart = t.dueDate ? `<span class="due-date${over ? ' due-overdue' : ''}">${fmtDate(t.dueDate)}</span>` : '';
   const timePart = t.time ? `<span class="time-badge">${t.time}</span>` : '';
-  return `<div class="todo-item${t.done ? ' done' : ''}${over ? ' overdue-item' : ''}">
-    <span class="todo-cb" onclick="toggleTodo(${i})">${t.done ? '☑' : '☐'}</span>
-    ${duePart}${timePart}${pBadge(t.priority || 'medium')}
-    <span class="todo-text" contenteditable="true" onblur="editTodo(${i},this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${esc(t.text)}</span>
-    ${projectBadgeHtml(t)}
-    <span class="todo-del" onclick="delTodo(${i})">✕</span>
+  return `<div class="todo-item-wrap">
+    <div class="todo-item${t.done ? ' done' : ''}${over ? ' overdue-item' : ''}">
+      <span class="todo-cb" onclick="toggleTodo(${i})">${t.done ? '☑' : '☐'}</span>
+      ${duePart}${timePart}${pBadge(t.priority || 'medium')}
+      <span class="todo-text" contenteditable="true" onblur="editTodo(${i},this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${esc(t.text)}</span>
+      ${projectBadgeHtml(t)}
+      <span class="todo-del" onclick="delTodo(${i})">✕</span>
+    </div>
+    ${projectSubitemsInlineHtml(t)}
   </div>`;
 }
 
@@ -601,6 +635,15 @@ function toggleSubItem(i) {
   const p = projects.find(x => x.id === currentProjectId); if (!p) return;
   p.subItems[i].done = !p.subItems[i].done;
   saveProjects(); renderProjectModalList(); renderTodos();
+}
+
+// Toggling a sub-item inline (shown directly under its linked to-do, not
+// through the modal) - keep the modal's own list in sync if it's open.
+function toggleSubItemFor(projectId, si) {
+  const p = projects.find(x => x.id === projectId); if (!p) return;
+  p.subItems[si].done = !p.subItems[si].done;
+  saveProjects(); renderTodos();
+  if (currentProjectId === projectId) renderProjectModalList();
 }
 
 function delSubItem(i) {
