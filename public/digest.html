@@ -232,6 +232,9 @@ async function loadLive() {
           else _detailData.push({ account: acc, emails: entry.emails || [] });
         }
       }
+      // remove any accounts not in live data (e.g. personal accounts removed from ACCOUNTS list)
+      const liveAccounts = new Set(Object.keys(_liveCounts));
+      _detailData = _detailData.filter(d => liveAccounts.has(d.account));
       if (_detailData.length) renderSummary(_lastTitle, _detailData);
       const ts = data.updatedAt ? new Date(data.updatedAt).toLocaleString('th-TH', { timeStyle: 'short' }) : '';
       document.getElementById('last-updated').textContent = `อัปเดต: ${ts} · live`;
