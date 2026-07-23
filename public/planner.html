@@ -84,25 +84,33 @@
   .todo-text { flex: 1; min-width: 0; word-break: break-word; color: #111; line-height: 1.4; font-weight: 400; cursor: text; border-radius: 2px; padding: 0 2px; }
   .todo-text:focus { outline: none; background: #fffef0; box-shadow: 0 0 0 1px #a8cfc8; }
   .todo-item.done .todo-text { text-decoration: line-through; color: #b0b0b0; }
-  .p-badge { font-size: 6.5px; padding: 0 3px; border-radius: 2px; font-weight: 500; white-space: nowrap; line-height: 1.6; }
+  .p-badge { font-size: 6.5px; padding: 0 3px; border-radius: 2px; font-weight: 500; white-space: nowrap; line-height: 1.6; cursor: pointer; }
   .p-high { background: #fee2e2; color: #b91c1c; border: 0.5px solid #fca5a5; }
   .p-med  { background: #fef3c7; color: #92400e; border: 0.5px solid #fde68a; }
   .p-low  { background: #f3f4f6; color: #6b7280; border: 0.5px solid #d1d5db; }
-  .due-date { font-size: 7.5px; color: #888; white-space: nowrap; font-weight: 400; }
-  .due-overdue { color: #dc2626 !important; font-weight: 500; }
-  .time-badge { font-size: 7.5px; color: #1a4a6b; white-space: nowrap; font-weight: 600; background: #d4eaf8; border-radius: 2px; padding: 0 3px; }
+  .due-overdue { border-color: #dc2626 !important; color: #dc2626 !important; }
   .todo-del { cursor: pointer; color: #ccc; font-size: 10px; flex-shrink: 0; line-height: 1.5; margin-top: 1px; }
   .todo-del:hover { color: #e57373; }
-  .project-badge {
-    font-size: 7px; color: #6b3fa0; background: #f0e6fa; border: 0.5px solid #d9c2f0;
-    border-radius: 2px; padding: 0 3px; cursor: pointer; white-space: nowrap;
-    max-width: 90px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: middle;
-  }
-  .project-badge:hover { background: #e3d1f5; }
   .todo-item-wrap { margin: 2px 0; break-inside: avoid; }
   .todo-item-wrap .todo-item { margin: 0; }
+  .todo-item-row2 { display: flex; gap: 3px; margin: 1px 0 0 15px; }
+  .todo-due-input, .todo-time-input {
+    font-size: 6.5px; padding: 0 1px; border: 0.5px solid #ccc; border-radius: 2px;
+    font-family: 'Mitr', sans-serif; color: #555; background: white; width: 64px;
+  }
+  .todo-time-input { width: 42px; }
+  .todo-project-select {
+    font-size: 6.5px; padding: 0 1px; border: 0.5px solid #d9c2f0; border-radius: 2px;
+    font-family: 'Mitr', sans-serif; color: #6b3fa0; background: #f8f2ff; max-width: 80px; flex-shrink: 1;
+  }
   .project-subitems { margin: 1px 0 2px 15px; border-left: 1.5px solid #e3d1f5; padding-left: 5px; }
   .subitem-inline { display: flex; align-items: flex-start; gap: 3px; font-size: 8px; color: #6b3fa0; line-height: 1.35; }
+  .subitem-inline-del { cursor: pointer; color: #d9c2f0; flex-shrink: 0; }
+  .subitem-inline-del:hover { color: #e57373; }
+  .subitem-inline-input {
+    font-size: 7.5px; padding: 1px 3px; border: 0.5px dashed #d9c2f0; border-radius: 2px;
+    font-family: 'Mitr', sans-serif; color: #6b3fa0; background: transparent; width: 100%; margin-top: 1px;
+  }
   .subitem-inline-cb { cursor: pointer; font-size: 9px; flex-shrink: 0; user-select: none; }
   .subitem-inline-text { flex: 1; word-break: break-word; }
   .subitem-inline.done .subitem-inline-text { text-decoration: line-through; color: #c3b0d8; }
@@ -488,44 +496,44 @@ function fmtDate(d) {
   return `${dt.getDate()} ${months[dt.getMonth()]}`;
 }
 
-function pBadge(p) {
-  if (p === 'high') return '<span class="p-badge p-high">HIGH</span>';
-  if (p === 'low')  return '<span class="p-badge p-low">LOW</span>';
-  return '<span class="p-badge p-med">MED</span>';
-}
-
-function projectBadgeHtml(t) {
-  if (!t.projectId) return '';
-  const p = projects.find(p => p.id === t.projectId);
-  if (!p) return '';
-  const total = p.subItems.length;
-  const done = p.subItems.filter(s => s.done).length;
-  return `<span class="project-badge" onclick="openProject('${p.id}')" title="${esc(p.name)}">🔗 ${esc(p.name)} (${done}/${total})</span>`;
+function pBadge(p, i) {
+  const cls = p === 'high' ? 'p-high' : p === 'low' ? 'p-low' : 'p-med';
+  const label = p === 'high' ? 'HIGH' : p === 'low' ? 'LOW' : 'MED';
+  return `<span class="p-badge ${cls}" onclick="cyclePriority(${i})" title="click to change priority">${label}</span>`;
 }
 
 function projectSubitemsInlineHtml(t) {
   if (!t.projectId) return '';
   const p = projects.find(p => p.id === t.projectId);
-  if (!p || !p.subItems.length) return '';
+  if (!p) return '';
   const items = p.subItems.map((s, si) => `
     <div class="subitem-inline${s.done ? ' done' : ''}">
       <span class="subitem-inline-cb" onclick="toggleSubItemFor('${p.id}',${si})">${s.done ? '☑' : '☐'}</span>
       <span class="subitem-inline-text">${esc(s.text)}</span>
+      <span class="subitem-inline-del" onclick="delSubItemFor('${p.id}',${si})">✕</span>
     </div>`).join('');
-  return `<div class="project-subitems">${items}</div>`;
+  return `<div class="project-subitems">
+    ${items}
+    <input type="text" class="subitem-inline-input" placeholder="+ เพิ่มขั้นตอน..." onkeydown="if(event.key==='Enter'){addSubItemFor('${p.id}',this);event.preventDefault();}">
+  </div>`;
 }
 
 function todoItemHtml(t, i) {
   const over = isOverdue(t);
-  const duePart = t.dueDate ? `<span class="due-date${over ? ' due-overdue' : ''}">${fmtDate(t.dueDate)}</span>` : '';
-  const timePart = t.time ? `<span class="time-badge">${t.time}</span>` : '';
   return `<div class="todo-item-wrap">
     <div class="todo-item${t.done ? ' done' : ''}${over ? ' overdue-item' : ''}">
       <span class="todo-cb" onclick="toggleTodo(${i})">${t.done ? '☑' : '☐'}</span>
-      ${duePart}${timePart}${pBadge(t.priority || 'medium')}
+      ${pBadge(t.priority || 'medium', i)}
       <span class="todo-text" contenteditable="true" onblur="editTodo(${i},this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${esc(t.text)}</span>
-      ${projectBadgeHtml(t)}
       <span class="todo-del" onclick="delTodo(${i})">✕</span>
+    </div>
+    <div class="todo-item-row2">
+      <input type="date" class="todo-due-input${over ? ' due-overdue' : ''}" value="${t.dueDate || ''}" onchange="updateTodoField(${i},'dueDate',this.value)">
+      <input type="time" class="todo-time-input" step="900" value="${t.time || ''}" onchange="updateTodoField(${i},'time',this.value)">
+      <select class="todo-project-select" onchange="onTodoProjectChange(${i},this)">
+        <option value="">🔗 —</option>
+        ${projects.map(p => `<option value="${p.id}"${p.id === t.projectId ? ' selected' : ''}>${esc(p.name)}</option>`).join('')}
+      </select>
     </div>
     ${projectSubitemsInlineHtml(t)}
   </div>`;
@@ -551,6 +559,25 @@ function editTodo(i, el) {
   const newText = el.innerText.trim();
   if (newText && newText !== todos[i].text) { todos[i].text = newText; saveTodos(); renderTable(); renderTodos(); }
   else if (!newText) renderTodos();
+}
+
+function cyclePriority(i) {
+  const order = ['high', 'medium', 'low'];
+  const idx = order.indexOf(todos[i].priority || 'medium');
+  todos[i].priority = order[(idx + 1) % order.length];
+  saveTodos(); renderTodos();
+}
+
+// date/time both affect which schedule slot auto-fills the task text, so
+// re-render the schedule tables too, not just the to-do list.
+function updateTodoField(i, field, value) {
+  todos[i][field] = value || '';
+  saveTodos(); renderTable(); renderTodos();
+}
+
+function onTodoProjectChange(i, sel) {
+  todos[i].projectId = sel.value || null;
+  saveTodos(); renderTodos();
 }
 
 function addTask() {
@@ -642,6 +669,21 @@ function toggleSubItem(i) {
 function toggleSubItemFor(projectId, si) {
   const p = projects.find(x => x.id === projectId); if (!p) return;
   p.subItems[si].done = !p.subItems[si].done;
+  saveProjects(); renderTodos();
+  if (currentProjectId === projectId) renderProjectModalList();
+}
+
+function delSubItemFor(projectId, si) {
+  const p = projects.find(x => x.id === projectId); if (!p) return;
+  p.subItems.splice(si, 1);
+  saveProjects(); renderTodos();
+  if (currentProjectId === projectId) renderProjectModalList();
+}
+
+function addSubItemFor(projectId, inputEl) {
+  const text = inputEl.value.trim(); if (!text) return;
+  const p = projects.find(x => x.id === projectId); if (!p) return;
+  p.subItems.push({ id: 'si' + Date.now(), text, done: false });
   saveProjects(); renderTodos();
   if (currentProjectId === projectId) renderProjectModalList();
 }
