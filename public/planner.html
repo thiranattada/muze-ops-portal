@@ -75,7 +75,7 @@
     display: flex; justify-content: space-between; align-items: center;
   }
   .todo-columns { display: flex; gap: 10px; }
-  .todo-col-active { flex: 1; min-width: 0; }
+  .todo-col-active { flex: 2; min-width: 0; column-count: 2; column-gap: 10px; }
   .todo-col-done   { flex: 1; min-width: 0; border-left: 0.5px solid #e0e0e0; padding-left: 8px; }
   .todo-col-header { font-size: 7.5px; font-weight: 600; color: #888; letter-spacing: 0.8px; text-transform: uppercase; border-bottom: 0.5px solid #e0e0e0; padding-bottom: 1px; margin-bottom: 2px; }
   .todo-item { display: flex; align-items: flex-start; gap: 3px; font-size: 9.5px; font-weight: 400; line-height: 1.4; margin: 2px 0; break-inside: avoid; }
@@ -99,7 +99,7 @@
     max-width: 90px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: middle;
   }
   .project-badge:hover { background: #e3d1f5; }
-  .todo-item-wrap { margin: 2px 0; }
+  .todo-item-wrap { margin: 2px 0; break-inside: avoid; }
   .todo-item-wrap .todo-item { margin: 0; }
   .project-subitems { margin: 1px 0 2px 15px; border-left: 1.5px solid #e3d1f5; padding-left: 5px; }
   .subitem-inline { display: flex; align-items: flex-start; gap: 3px; font-size: 8px; color: #6b3fa0; line-height: 1.35; }
