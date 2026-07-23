@@ -543,7 +543,13 @@ function renderTodos() {
   const activeEl = document.getElementById('todo-list-active');
   const doneEl   = document.getElementById('todo-list-done');
   if (!activeEl || !doneEl) return;
-  const active = todos.map((t, i) => ({ t, i })).filter(({ t }) => !t.done);
+  const active = todos.map((t, i) => ({ t, i })).filter(({ t }) => !t.done)
+    .sort((a, b) => {
+      if (!a.t.dueDate && !b.t.dueDate) return 0;
+      if (!a.t.dueDate) return 1;
+      if (!b.t.dueDate) return -1;
+      return a.t.dueDate < b.t.dueDate ? -1 : a.t.dueDate > b.t.dueDate ? 1 : 0;
+    });
   const done   = todos.map((t, i) => ({ t, i })).filter(({ t }) =>  t.done);
   activeEl.innerHTML = active.length
     ? active.map(({ t, i }) => todoItemHtml(t, i)).join('')
