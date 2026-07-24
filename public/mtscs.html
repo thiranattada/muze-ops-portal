@@ -48,12 +48,17 @@
     .stat-table td, .stat-table th { padding: 6px 10px; }
     .stat-table th:not(:first-child), .stat-table td:not(:first-child) { text-align: right; }
 
+    .ticket-table-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: #666; }
+    .ticket-table-toolbar button { padding: 5px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; background: white; cursor: pointer; color: #444; }
+    .ticket-table-toolbar button:hover { background: #f7f8fa; }
     .ticket-table { background: white; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     th { text-align: left; background: #f7f8fa; color: #888; font-weight: 600; padding: 10px 14px; text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em; }
     td { padding: 10px 14px; border-top: 1px solid #f0f0f0; color: #333; }
     td a { color: #1a73e8; text-decoration: none; font-weight: 600; }
     td a:hover { text-decoration: underline; }
+    .filter-row td { padding: 6px 8px; background: #fbfbfc; }
+    .filter-row select, .filter-row input { width: 100%; padding: 4px 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; box-sizing: border-box; }
     .status-chip { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; background: #eef1f5; color: #444; }
     #empty-state { text-align: center; padding: 80px 24px; color: #666; }
     #empty-state .icon { font-size: 48px; margin-bottom: 16px; }
@@ -133,6 +138,94 @@ function renderTicketRow(t, jiraBaseUrl) {
   </tr>`;
 }
 
+let CURRENT_MONTH_TICKETS = [];
+let TABLE_FILTERS = { issueType: 'all', status: 'all', assignee: 'all', summary: '' };
+
+function uniqueSorted(tickets, field) {
+  return Array.from(new Set(tickets.map(t => t[field] || 'Unknown'))).sort();
+}
+
+function filterOptionsHtml(values, selected) {
+  return '<option value="all">ทั้งหมด</option>' +
+    values.map(v => `<option value="${escapeHtml(v)}"${v === selected ? ' selected' : ''}>${escapeHtml(v)}</option>`).join('');
+}
+
+function filterTickets(tickets) {
+  const search = TABLE_FILTERS.summary.trim().toLowerCase();
+  return tickets.filter(t => {
+    if (TABLE_FILTERS.issueType !== 'all' && (t.customfield_11703 || 'Unknown') !== TABLE_FILTERS.issueType) return false;
+    if (TABLE_FILTERS.status !== 'all' && (t.status || 'Unknown') !== TABLE_FILTERS.status) return false;
+    if (TABLE_FILTERS.assignee !== 'all' && (t.assignee || 'Unknown') !== TABLE_FILTERS.assignee) return false;
+    if (search && !(t.summary || '').toLowerCase().includes(search) && !(t.key || '').toLowerCase().includes(search)) return false;
+    return true;
+  });
+}
+
+function renderTicketTableBody() {
+  const filtered = filterTickets(CURRENT_MONTH_TICKETS);
+  document.getElementById('ticket-tbody').innerHTML = filtered.map(t => renderTicketRow(t, JIRA_BASE_URL)).join('');
+  document.getElementById('ticket-count').textContent = `แสดง ${filtered.length} จาก ${CURRENT_MONTH_TICKETS.length} รายการ`;
+}
+
+function onTableFilterChange(field, value) {
+  TABLE_FILTERS[field] = value;
+  renderTicketTableBody();
+}
+
+function csvCell(v) {
+  const s = String(v === undefined || v === null ? '' : v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function exportCsv() {
+  const rows = filterTickets(CURRENT_MONTH_TICKETS);
+  const header = ['Key', 'Issue Type', 'Summary', 'Status', 'Assignee'];
+  const lines = [header.map(csvCell).join(',')];
+  rows.forEach(t => {
+    lines.push([t.key, t.customfield_11703 || '-', t.summary || '', t.status || '-', t.assignee || '-'].map(csvCell).join(','));
+  });
+  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mtscs-tickets.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function renderTicketTableSection(tickets) {
+  CURRENT_MONTH_TICKETS = tickets;
+  TABLE_FILTERS = { issueType: 'all', status: 'all', assignee: 'all', summary: '' };
+
+  const issueTypes = uniqueSorted(tickets, 'customfield_11703');
+  const statuses = uniqueSorted(tickets, 'status');
+  const assignees = uniqueSorted(tickets, 'assignee');
+
+  return `
+    <div class="ticket-table-toolbar">
+      <span id="ticket-count">แสดง ${tickets.length} จาก ${tickets.length} รายการ</span>
+      <button onclick="exportCsv()">📥 Export CSV</button>
+    </div>
+    <div class="ticket-table">
+      <table>
+        <thead>
+          <tr><th>Key</th><th>Issue Type</th><th>Summary</th><th>Status</th><th>Assignee</th></tr>
+          <tr class="filter-row">
+            <td></td>
+            <td><select onchange="onTableFilterChange('issueType', this.value)">${filterOptionsHtml(issueTypes, 'all')}</select></td>
+            <td><input type="text" placeholder="ค้นหา key/summary..." oninput="onTableFilterChange('summary', this.value)"></td>
+            <td><select onchange="onTableFilterChange('status', this.value)">${filterOptionsHtml(statuses, 'all')}</select></td>
+            <td><select onchange="onTableFilterChange('assignee', this.value)">${filterOptionsHtml(assignees, 'all')}</select></td>
+          </tr>
+        </thead>
+        <tbody id="ticket-tbody">${tickets.map(t => renderTicketRow(t, JIRA_BASE_URL)).join('')}</tbody>
+      </table>
+    </div>
+  `;
+}
+
 const MONTH_ABBR = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
 
 // The Sheet's "created" is when the Jira ticket was filed - the [DD Mon YYYY]
@@ -200,12 +293,7 @@ function renderDashboard() {
     <div class="panels">
       <div class="panel"><h2>ประเภท (Issue Type)</h2>${renderColumnChart(groupBy(tickets, 'customfield_11703'))}</div>
     </div>
-    <div class="ticket-table">
-      <table>
-        <thead><tr><th>Key</th><th>Issue Type</th><th>Summary</th><th>Status</th><th>Assignee</th></tr></thead>
-        <tbody>${latest.map(t => renderTicketRow(t, JIRA_BASE_URL)).join('')}</tbody>
-      </table>
-    </div>
+    ${renderTicketTableSection(latest)}
   `;
 }
 
